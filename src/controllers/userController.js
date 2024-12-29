@@ -24,7 +24,7 @@ const register = async (req, res, next) => {
 
     const user = await User.create({ name, email, password: hashPassword });
 
-    const token = generateToken(user.email);
+    const token = await generateToken(user.email);
 
     return res.status(201).json({
       message: "User registered successfully.",
@@ -33,9 +33,7 @@ const register = async (req, res, next) => {
       token,
     });
   } catch (error) {
-    return next(
-      createHttpError(500, "Error while registering new user.", error)
-    );
+    return next(createHttpError(500, "Error while registering new user."));
   }
 };
 
@@ -54,7 +52,7 @@ const login = async (req, res, next) => {
       return next(createHttpError(400, "Invalid Email or Password."));
     }
 
-    const token = generateToken(user.email);
+    const token = await generateToken(user.email);
 
     return res.status(200).json({
       message: "Login successful.",
@@ -63,9 +61,37 @@ const login = async (req, res, next) => {
       user: { id: user._id, name: user.name, email: user.email },
     });
   } catch (error) {
-    return next(createHttpError(500, "Error during login.", error));
+    return next(createHttpError(500, "Error during login."));
   }
 };
 
+const logout = (req, res, next) => {
+  try {
+    res.clearCookie("token");
+    return res.status(200).json({
+      message: "Logout Successful.",
+      success: true,
+    });
+  } catch (error) {
+    return next(createHttpError(500, "Error during logout."));
+  }
+};
 
-export { register, login};
+const profile = (req, res, next) => {
+  try {
+    return res.status(200).json({ user: req.user });
+  } catch (error) {
+    return next(createHttpError(500, "Error fetching profile."));
+  }
+};
+
+const getAllUsers = async (req, res, next) => {
+  try {
+    const users = await User.find().select("-password");
+    return res.status(200).json({ users });
+  } catch (error) {
+    return next(createHttpError(500, "Error fetching users."));
+  }
+};
+
+export { register, login, logout, profile, getAllUsers };
