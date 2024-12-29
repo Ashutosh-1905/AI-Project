@@ -5,6 +5,8 @@ import cookieParser from "cookie-parser";
 import globalErrorHandler from "./middlewares/globalErrorHandler.js";
 import config from "./config/config.js";
 
+import userRouter from "./routes/userRouter.js";
+
 const app = express();
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
@@ -17,6 +19,9 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(morgan("dev"));
+
+
+app.use("/api/users", userRouter);
 
 app.get("/", (req, res) => {
     res.status(200).json({
