@@ -6,7 +6,6 @@ import { Server } from 'socket.io'; // Import Socket.IO server
 import app from './src/app.js';
 import config from './src/config/config.js';
 import connectDB from './src/config/connectDB.js';
-// import { generateResult } from './src/services/ai.service.js'; // Import AI service
 
 
 // Start the server on the specified port
