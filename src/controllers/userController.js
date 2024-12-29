@@ -22,7 +22,11 @@ const register = async (req, res, next) => {
     const salt = await bcrypt.genSalt(10);
     const hashPassword = await bcrypt.hash(password, salt);
 
-    const user = await User.create({ name, email, password: hashPassword });
+    const user = await User.create({
+      name,
+      email,
+      password: hashPassword
+    });
 
     const token = await generateToken(user.email);
 
@@ -47,9 +51,30 @@ const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return next(createHttpError(400, "Invalid Email or Password."));
+    if (!email || !password) {
+      return next(createHttpError(400, "Email and Password are required."));
+    }
+
+    // const user = await User.findOne({ email });
+    // if (!user) {
+    //   return next(createHttpError(400, "Invalid Email."));
+    // }
+
+    // if (!user.password) {
+    //   return next(
+    //     createHttpError(500, "User password is not set in the database.")
+    //   );
+    // }
+
+    const user = await User.findOne({ email }).select("+password");
+
+    if (!user) {
+      return next(createHttpError(404, "User not found"));
+    }
+    
+    const checkPassword = await bcrypt.compare(password, user.password);
+    if (!checkPassword) {
+      return next(createHttpError(400, "Invalid Password."));
     }
 
     const token = await generateToken(user.email);
@@ -61,6 +86,7 @@ const login = async (req, res, next) => {
       user: { id: user._id, name: user.name, email: user.email },
     });
   } catch (error) {
+    console.error("Error during login:", error); // Log detailed error for debugging
     return next(createHttpError(500, "Error during login."));
   }
 };
